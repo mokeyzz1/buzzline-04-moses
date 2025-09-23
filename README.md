@@ -1,36 +1,74 @@
-## Project Consumer (MK)
+# Buzzline Project – Real-Time JSON Consumer (Moses)
 
-This custom consumer (`project_consumer_mk.py`) reads messages from the Kafka topic **`buzzline_json`**.  
-It visualizes the **sentiment trend over time** in real time.  
+This project demonstrates **real-time data streaming with Kafka** and Python.  
+It includes a **custom producer** that generates JSON messages and a **consumer** that processes those messages to create **live visualizations of sentiment trends**.
 
-### What It Does
-- Consumes live JSON messages produced by `project_producer_case.py`.  
-- Extracts the `timestamp` and `sentiment` fields from each message.  
-- Appends them into two lists to track sentiment scores over time.  
-- Updates a **line chart** that shows how positive or negative the stream of messages is as they arrive.  
+---
 
-### Why This Is Interesting
-Sentiment analysis gives insight into the overall “mood” of the messages.  
-Plotting sentiment values as a **line chart** over time shows live trends — whether messages are getting more positive or negative — making it more dynamic and meaningful than static counts.  
+## Features
+- **Producer**: Streams random JSON messages containing:
+  - message text  
+  - author  
+  - timestamp  
+  - category  
+  - sentiment score (stubbed for now)  
+  - keyword mentioned  
+  - message length  
 
-### Run Instructions
+- **Consumer (Custom: `project_consumer_mk.py`)**:
+  - Reads messages from Kafka topic `project_json` (from `.env`).  
+  - Extracts only the fields needed (`timestamp`, `sentiment`).  
+  - Updates a **live Matplotlib chart** in real-time.  
+  - Logs processing steps and errors for debugging.  
 
-Start the provided producer (do not modify):
-``` zsh
-python3 -m producers.project_producer_case
+---
+
+## Environment Setup
+### 1. Clone repo & create virtual environment
+```bash
+git clone <your-repo-url>
+cd buzzline-04-moses
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 ```
 
-Run my custom consumer:
-``` zsh 
-python3 -m consumers.project_consumer_mk
-``` 
+#### 2 Configure environment variables
 
-### Visualization
+Edit .env (not committed to GitHub):
 
-Chart Type: Line chart
+# Kafka settings
+KAFKA_BROKER_ADDRESS=localhost:9092
 
-X-axis: Message timestamps
+# Project settings
+PROJECT_TOPIC=project_json
+PROJECT_INTERVAL_SECONDS=5
+PROJECT_CONSUMER_GROUP_ID=project_group
 
-Y-axis: Sentiment scores
 
-Chart Title: "Real-Time Sentiment Trend - MK"
+### Running the Project
+
+Start Zookeeper & Kafka (if running locally):
+``` zsh
+bin/zookeeper-server-start.sh config/zookeeper.properties
+bin/kafka-server-start.sh config/server.properties
+```
+
+Run Producer:
+``` zsh
+python -m producers.project_producer_case
+```
+Run Consumer:
+``` zsh
+python -m consumers.project_consumer_mk
+```
+
+#### Visualization
+
+The consumer displays a real-time chart:
+
+X-axis → Timestamps of messages
+
+Y-axis → Sentiment scores (0 to 1)
+
+Green line with markers shows sentiment trend over time.
