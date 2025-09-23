@@ -79,6 +79,7 @@ def get_kafka_topic() -> str:
     return os.getenv("PROJECT_TOPIC", "buzzline-topic")
 
 def get_kafka_server() -> str:
+    
     return os.getenv("KAFKA_SERVER", "localhost:9092")
 
 #####################################

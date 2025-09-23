@@ -23,7 +23,11 @@ import json  # handle JSON parsing
 # Import external packages
 from dotenv import load_dotenv
 
-# IMPORTANT
+# IMPORTANT - Visualization
+# Use TkAgg backend to ensure matplotlib can open a GUI window properly on macOS
+import matplotlib
+matplotlib.use("TkAgg")
+
 # Import Matplotlib.pyplot for live plotting
 # Use the common alias 'plt' for Matplotlib.pyplot
 # Know pyplot well
@@ -46,14 +50,14 @@ load_dotenv()
 
 def get_kafka_topic() -> str:
     """Fetch Kafka topic from environment or use default."""
-    topic = os.getenv("BUZZ_TOPIC", "unknown_topic")
+    topic = os.getenv("PROJECT_TOPIC", "project_json")
     logger.info(f"Kafka topic: {topic}")
     return topic
 
 
 def get_kafka_consumer_group_id() -> str:
     """Fetch Kafka consumer group id from environment or use default."""
-    group_id: str = os.getenv("BUZZ_CONSUMER_GROUP_ID", "default_group")
+    group_id: str = os.getenv("PROJECT_CONSUMER_GROUP_ID", "project_group")
     logger.info(f"Kafka consumer group id: {group_id}")
     return group_id
 
@@ -63,6 +67,7 @@ def get_kafka_consumer_group_id() -> str:
 #####################################
 
 # Initialize lists to track time and sentiment
+# These will grow as new messages arrive
 timestamps = []
 sentiments = []
 
@@ -88,7 +93,7 @@ plt.ion()
 
 def update_chart():
     """Update the live chart with the latest sentiment trend."""
-    # Clear the previous chart
+    # Clear the previous chart so new data can be plotted
     ax.clear()
 
     # Plot sentiment values over time
@@ -141,16 +146,17 @@ def process_message(message: str) -> None:
             sentiment = message_dict.get("sentiment")
 
             if timestamp and sentiment is not None:
-                # Append new data
+                # Append new data to the lists
                 timestamps.append(timestamp)
                 sentiments.append(sentiment)
 
+                # Log what was appended
                 logger.info(f"Appended timestamp={timestamp}, sentiment={sentiment}")
 
                 # Update the chart
                 update_chart()
 
-                # Log the updated chart
+                # Log the updated chart status
                 logger.info(f"Chart updated successfully for message: {message}")
         else:
             logger.error(f"Expected a dictionary but got: {type(message_dict)}")
@@ -194,10 +200,13 @@ def main() -> None:
             logger.debug(f"Received message at offset {message.offset}: {message_str}")
             process_message(message_str)
     except KeyboardInterrupt:
+        # Handle CTRL+C gracefully
         logger.warning("Consumer interrupted by user.")
     except Exception as e:
+        # Log unexpected errors
         logger.error(f"Error while consuming messages: {e}")
     finally:
+        # Always close the consumer on exit
         consumer.close()
         logger.info(f"Kafka consumer for topic '{topic}' closed.")
 
