@@ -11,3 +11,13 @@ __pycache__/
 
 # macOS system files
 .DS_Store
+
+# Python venv
+*.pyc
+
+# Data & logs
+data/*.json
+logs/
+
+# Kafka install file
+kafka_*.tgz
